@@ -52,7 +52,8 @@ class FileHandler:
         pass
 
     def __del__(self):
-        shutil.rmtree(self._tmp_dir)
+        if os.path.exists(self._tmp_dir):
+            shutil.rmtree(self._tmp_dir)
 
 
 class DocxFileHandler(FileHandler):
@@ -71,8 +72,10 @@ class DocFileHandler(DocxFileHandler):
         self._config = config
 
         self._orig_filepath = filepath
+        print(self._orig_filepath)
         # convert doc to docx
         self._temp_filepath = self._convert_file(self._orig_filepath)
+        print(self._temp_filepath)
 
         super().__init__(self._temp_filepath, converter)
 
@@ -122,6 +125,11 @@ class DocFileHandler(DocxFileHandler):
         else:
             os.remove(self._orig_filepath)
             shutil.copyfile(self._temp_filepath, '.docx'.join(self._orig_filepath.rsplit('.doc', 1)))
+
+    def __del__(self):
+        super().__del__()
+        if os.path.exists(self._docx_tmp_dir):
+            shutil.rmtree(self._docx_tmp_dir)
 
 
 class XlsxFileHandler(FileHandler):
@@ -208,6 +216,11 @@ class XlsFileHandler(XlsxFileHandler):
         else:
             os.remove(self._orig_filepath)
             shutil.copyfile(self._temp_filepath, '.xlsx'.join(self._orig_filepath.rsplit('.xls', 1)))
+
+    def __del__(self):
+        super().__del__()
+        if os.path.exists(self._xlsx_tmp_dir):
+            shutil.rmtree(self._xlsx_tmp_dir)
 
 
 class PptxFileHandler(FileHandler):
@@ -305,10 +318,15 @@ class PptFileHandler(PptxFileHandler):
     def process_file(self):
         super().process_file()
 
-        # convert xlsx to xls
+        # convert pptx to ppt
         self._temp_filepath = self._convert_file(self._temp_filepath)
         if os.path.basename(self._temp_filepath).endswith('.ppt'):
             shutil.copyfile(self._temp_filepath, self._orig_filepath)
         else:
             os.remove(self._orig_filepath)
             shutil.copyfile(self._temp_filepath, '.pptx'.join(self._orig_filepath.rsplit('.ppt', 1)))
+
+    def __del__(self):
+        super().__del__()
+        if os.path.exists(self._pptx_tmp_dir):
+            shutil.rmtree(self._pptx_tmp_dir)
