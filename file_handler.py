@@ -73,10 +73,8 @@ class DocFileHandler(DocxFileHandler):
         self._config = config
 
         self._orig_filepath = filepath
-        print(self._orig_filepath)
         # convert doc to docx
         self._temp_filepath = self._convert_file(self._orig_filepath)
-        print(self._temp_filepath)
 
         super().__init__(self._temp_filepath, converter)
 
