@@ -64,22 +64,17 @@ class Handler:
         if os.path.exists(constants.CONFIG_FILE):
             with open(constants.CONFIG_FILE, 'r') as config_file:
                 self._config = yaml.load(config_file, Loader=yaml.FullLoader)
-                return
+                soffice_path = self._config.get(constants.SOFFICE_PATH_KEY, '')
+                if soffice_path != '' and shutil.which(soffice_path) is not None:
+                    return
 
-        print('[INFO] Trying to detect OpenOffice/M$ Office installation...')
+        print('[INFO] Trying to detect OpenOffice installation...')
         self._config = {}
         if platform.system() == 'Windows':
             for (root, _, files) in os.walk('C:\\'):
                 for file in files:
-                    f = file.lower()
-                    if f == 'soffice.exe':
+                    if file.lower() == 'soffice.exe':
                         self._config[constants.SOFFICE_PATH_KEY] = os.path.join(root, file)
-                    elif f == 'wordconv.exe':
-                        self._config[constants.WORDCONV_PATH_KEY] = os.path.join(root, file)
-                    elif f == 'excelcnv.exe':
-                        self._config[constants.EXCELCNV_PATH_KEY] = os.path.join(root, file)
-                    elif f == 'ppcnvcom.exe':
-                        self._config[constants.PPCNVCOM_PATH_KEY] = os.path.join(root, file)
         else:
             if shutil.which('soffice') is not None:
                 self._config[constants.SOFFICE_PATH_KEY] = 'soffice'

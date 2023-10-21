@@ -52,8 +52,10 @@ class FileHandler:
         pass
 
     def __del__(self):
-        if os.path.exists(self._tmp_dir):
+        try:
             shutil.rmtree(self._tmp_dir)
+        except Exception:
+            pass
 
 
 class DocxFileHandler(FileHandler):
@@ -64,9 +66,8 @@ class DocxFileHandler(FileHandler):
 
 class DocFileHandler(DocxFileHandler):
     def __init__(self, filepath, converter, config=None):
-        if (config is None) or ((config.get(constants.SOFFICE_PATH_KEY, '') == '') and (
-           config.get(constants.WORDCONV_PATH_KEY, '') == '')):
-            raise TypeError('OpenOffice/M$ Office not found, this file will be skipped!')
+        if (config is None) or (config.get(constants.SOFFICE_PATH_KEY, '') == ''):
+            raise TypeError('OpenOffice not found, this file will be skipped!')
 
         self._docx_tmp_dir = tempfile.mkdtemp()
         self._config = config
@@ -95,24 +96,11 @@ class DocFileHandler(DocxFileHandler):
             )
             convert_to = 'doc'
 
-        soffice_path = self._config.get(constants.SOFFICE_PATH_KEY, '')
-        if soffice_path != '':
-            subprocess.call(
-                [soffice_path, '--headless', '--convert-to', convert_to, filepath, '--outdir', self._docx_tmp_dir],
-                stdout=open(os.devnull, 'wb')
-            )
-            return new_filepath
-
-        # convert docx to doc using wordconv? it won't work
-        if filename.endswith('.docx'):
-            return filepath
-
-        wordconv_path = self._config.get(constants.WORDCONV_PATH_KEY)
+        soffice_path = self._config.get(constants.SOFFICE_PATH_KEY)
         subprocess.call(
-            [wordconv_path, '-oice', '-nme', filepath, new_filepath],
+            [soffice_path, '--headless', '--convert-to', convert_to, filepath, '--outdir', self._docx_tmp_dir],
             stdout=open(os.devnull, 'wb')
         )
-
         return new_filepath
 
     def process_file(self):
@@ -120,16 +108,14 @@ class DocFileHandler(DocxFileHandler):
 
         # convert docx to doc
         self._temp_filepath = self._convert_file(self._temp_filepath)
-        if os.path.basename(self._temp_filepath).endswith('.doc'):
-            shutil.copyfile(self._temp_filepath, self._orig_filepath)
-        else:
-            os.remove(self._orig_filepath)
-            shutil.copyfile(self._temp_filepath, '.docx'.join(self._orig_filepath.rsplit('.doc', 1)))
+        shutil.copyfile(self._temp_filepath, self._orig_filepath)
 
     def __del__(self):
         super().__del__()
-        if os.path.exists(self._docx_tmp_dir):
+        try:
             shutil.rmtree(self._docx_tmp_dir)
+        except Exception:
+            pass
 
 
 class XlsxFileHandler(FileHandler):
@@ -157,9 +143,8 @@ class XlsxFileHandler(FileHandler):
 
 class XlsFileHandler(XlsxFileHandler):
     def __init__(self, filepath, converter, config=None):
-        if (config is None) or ((config.get(constants.SOFFICE_PATH_KEY, '') == '') and (
-           config.get(constants.EXCELCNV_PATH_KEY, '') == '')):
-            raise TypeError('OpenOffice/M$ Office not found, this file will be skipped!')
+        if (config is None) or (config.get(constants.SOFFICE_PATH_KEY, '') == ''):
+            raise TypeError('OpenOffice not found, this file will be skipped!')
 
         self._xlsx_tmp_dir = tempfile.mkdtemp()
         self._config = config
@@ -187,23 +172,10 @@ class XlsFileHandler(XlsxFileHandler):
             convert_to = 'xls'
 
         soffice_path = self._config.get(constants.SOFFICE_PATH_KEY, '')
-        if soffice_path != '':
-            subprocess.call(
-                [soffice_path, '--headless', '--convert-to', convert_to, filepath, '--outdir', self._xlsx_tmp_dir],
-                stdout=open(os.devnull, 'wb')
-            )
-            return new_filepath
-
-        # convert xlsx to xls using excelcnv? it won't work
-        if filename.endswith('.xlsx'):
-            return filepath
-
-        excelcnv_path = self._config.get(constants.EXCELCNV_PATH_KEY)
         subprocess.call(
-            [excelcnv_path, '-oice', filepath, new_filepath],
+            [soffice_path, '--headless', '--convert-to', convert_to, filepath, '--outdir', self._xlsx_tmp_dir],
             stdout=open(os.devnull, 'wb')
         )
-
         return new_filepath
 
     def process_file(self):
@@ -211,16 +183,14 @@ class XlsFileHandler(XlsxFileHandler):
 
         # convert xlsx to xls
         self._temp_filepath = self._convert_file(self._temp_filepath)
-        if os.path.basename(self._temp_filepath).endswith('.xls'):
-            shutil.copyfile(self._temp_filepath, self._orig_filepath)
-        else:
-            os.remove(self._orig_filepath)
-            shutil.copyfile(self._temp_filepath, '.xlsx'.join(self._orig_filepath.rsplit('.xls', 1)))
+        shutil.copyfile(self._temp_filepath, self._orig_filepath)
 
     def __del__(self):
         super().__del__()
-        if os.path.exists(self._xlsx_tmp_dir):
+        try:
             shutil.rmtree(self._xlsx_tmp_dir)
+        except Exception:
+            pass
 
 
 class PptxFileHandler(FileHandler):
@@ -266,8 +236,7 @@ class PptxFileHandler(FileHandler):
 
 class PptFileHandler(PptxFileHandler):
     def __init__(self, filepath, converter, config=None):
-        if (config is None) or ((config.get(constants.SOFFICE_PATH_KEY, '') == '') and (
-           config.get(constants.PPCNVCOM_PATH_KEY, '') == '')):
+        if (config is None) or (config.get(constants.SOFFICE_PATH_KEY, '') == ''):
             raise TypeError('OpenOffice/M$ Office not found, this file will be skipped!')
 
         self._pptx_tmp_dir = tempfile.mkdtemp()
@@ -296,23 +265,10 @@ class PptFileHandler(PptxFileHandler):
             convert_to = 'ppt'
 
         soffice_path = self._config.get(constants.SOFFICE_PATH_KEY, '')
-        if soffice_path != '':
-            subprocess.call(
-                [soffice_path, '--headless', '--convert-to', convert_to, filepath, '--outdir', self._pptx_tmp_dir],
-                stdout=open(os.devnull, 'wb')
-            )
-            return new_filepath
-
-        # convert pptx to ppt using ppconvcom? it won't work
-        if filename.endswith('.pptx'):
-            return filepath
-
-        excelcnv_path = self._config.get(constants.EXCELCNV_PATH_KEY)
         subprocess.call(
-            [excelcnv_path, '-oice', filepath, new_filepath],
+            [soffice_path, '--headless', '--convert-to', convert_to, filepath, '--outdir', self._pptx_tmp_dir],
             stdout=open(os.devnull, 'wb')
         )
-
         return new_filepath
 
     def process_file(self):
@@ -320,13 +276,11 @@ class PptFileHandler(PptxFileHandler):
 
         # convert pptx to ppt
         self._temp_filepath = self._convert_file(self._temp_filepath)
-        if os.path.basename(self._temp_filepath).endswith('.ppt'):
-            shutil.copyfile(self._temp_filepath, self._orig_filepath)
-        else:
-            os.remove(self._orig_filepath)
-            shutil.copyfile(self._temp_filepath, '.pptx'.join(self._orig_filepath.rsplit('.ppt', 1)))
+        shutil.copyfile(self._temp_filepath, self._orig_filepath)
 
     def __del__(self):
         super().__del__()
-        if os.path.exists(self._pptx_tmp_dir):
+        try:
             shutil.rmtree(self._pptx_tmp_dir)
+        except Exception:
+            pass

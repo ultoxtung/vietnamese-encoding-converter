@@ -11,7 +11,7 @@
 ## Requirement:
 
 - Python 3.x
-- OpenOffice/Micro$oft Office 2007 trờ lên (Không cần nếu không convert các file Office 97-2003 (.doc, .xls, .ppt))
+- OpenOffice (Không cần nếu không convert các file Office 97-2003 (.doc, .xls, .ppt))
 - `lxml`, `pyyaml` và `colorama`
 
 ## Sử dụng:
