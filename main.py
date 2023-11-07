@@ -1,7 +1,7 @@
 import argparse
 import colorama
 
-from handler import Handler
+from core.handler import Handler
 
 
 def main():

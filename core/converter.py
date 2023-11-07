@@ -1,4 +1,5 @@
-from charset import Charset, Encoding
+import constants.errors as errors
+from constants.charset import Charset, Encoding
 
 
 class Converter:
@@ -6,19 +7,19 @@ class Converter:
         if source_encoding is not None:
             self.source_encoding = self.__get_encoding(source_encoding)
             if self.source_encoding is None:
-                raise TypeError('Source encoding is not supported!')
+                raise errors.SOURCE_ENCODING_NOT_SUPPORTED
         else:
             self.source_encoding = None
 
         if target_encoding is not None:
             self.target_encoding = self.__get_encoding(target_encoding)
             if self.target_encoding is None:
-                raise TypeError('Target encoding is not supported!')
+                raise errors.TARGET_ENCODING_NOT_SUPPORTED
         else:
-            raise TypeError('Target encoding is not supported!')
+            raise errors.TARGET_ENCODING_NOT_SUPPORTED
 
         if self.target_encoding == self.source_encoding:
-            raise TypeError('Target encoding is the same as source encoding!')
+            raise errors.SAME_TARGET_ENCODING_AS_SOURCE
 
         self.__populate_converter_table()
 
@@ -84,7 +85,7 @@ class Converter:
 
         if self.source_encoding is not None:
             dest_string, replacement_count = self.__convert_from(src_string, self.source_encoding)
-            if len(dest_string) and (replacement_count / len(dest_string)) > ratio:
+            if len(dest_string) and (replacement_count / len(dest_string)) >= ratio:
                 result_string = dest_string
                 ratio = replacement_count / len(dest_string)
                 src_encoding = self.source_encoding
@@ -93,7 +94,7 @@ class Converter:
                 if encoding.value == self.target_encoding.value:
                     continue
                 dest_string, replacement_count = self.__convert_from(src_string, encoding)
-                if len(dest_string) and (replacement_count / len(dest_string)) > ratio:
+                if len(dest_string) and (replacement_count / len(dest_string)) >= ratio:
                     result_string = dest_string
                     ratio = replacement_count / len(dest_string)
                     src_encoding = encoding

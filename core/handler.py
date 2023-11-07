@@ -1,13 +1,16 @@
-import yaml
 import colorama
 import os
 import platform
 import shutil
+import yaml
 
-import constants
-import converter
-import file_handler
-import helper
+import constants.constants as constants
+import constants.errors as errors
+import core.converter as converter
+import file_handler.excel as excel
+import file_handler.ppoint as ppoint
+import file_handler.word as word
+import utils.helper as helper
 
 
 class Handler:
@@ -25,7 +28,7 @@ class Handler:
             self.source_string = input
         elif self.input_type == constants.InputType.FILE:
             if not self.__check_file_is_supported(input):
-                raise TypeError('File is not supported!')
+                raise errors.FILE_NOT_SUPPORTED
             self.paths = [input]
             shutil.copy2(input, helper.create_new_file_path(input))
         else:
@@ -46,17 +49,17 @@ class Handler:
     def __switch_file_handler(self, filepath):
         filename = os.path.basename(filepath)
         if filename.endswith('.doc'):
-            return file_handler.DocFileHandler(filepath, self.converter, self._config)
+            return word.DocFileHandler(filepath, self.converter, self._config)
         elif filename.endswith('.docx'):
-            return file_handler.DocxFileHandler(filepath, self.converter)
+            return word.DocxFileHandler(filepath, self.converter)
         elif filename.endswith('.xls'):
-            return file_handler.XlsFileHandler(filepath, self.converter, self._config)
+            return excel.XlsFileHandler(filepath, self.converter, self._config)
         elif filename.endswith('.xlsx'):
-            return file_handler.XlsxFileHandler(filepath, self.converter)
+            return excel.XlsxFileHandler(filepath, self.converter)
         elif filename.endswith('.ppt'):
-            return file_handler.PptFileHandler(filepath, self.converter, self._config)
+            return ppoint.PptFileHandler(filepath, self.converter, self._config)
         elif filename.endswith('.pptx'):
-            return file_handler.PptxFileHandler(filepath, self.converter)
+            return ppoint.PptxFileHandler(filepath, self.converter)
         else:
             return None
 
@@ -68,16 +71,16 @@ class Handler:
                 if soffice_path != '' and shutil.which(soffice_path) is not None:
                     return
 
-        print('[INFO] Trying to detect OpenOffice installation...')
+        print(errors.MSG_DETECTING_OPENOFFICE)
         self._config = {}
         if platform.system() == 'Windows':
             for (root, _, files) in os.walk('C:\\'):
                 for file in files:
-                    if file.lower() == 'soffice.exe':
+                    if file.lower() == constants.SOFFICE_CMD + '.exe':
                         self._config[constants.SOFFICE_PATH_KEY] = os.path.join(root, file)
         else:
-            if shutil.which('soffice') is not None:
-                self._config[constants.SOFFICE_PATH_KEY] = 'soffice'
+            if shutil.which(constants.SOFFICE_CMD) is not None:
+                self._config[constants.SOFFICE_PATH_KEY] = constants.SOFFICE_CMD
 
         with open(constants.CONFIG_FILE, 'w') as config_file:
             yaml.dump(self._config, config_file)
@@ -95,10 +98,10 @@ class Handler:
             try:
                 file_handler = self.__switch_file_handler(filepath)
                 if file_handler is None:
-                    raise TypeError('File is not supported')
+                    raise errors.FILE_NOT_SUPPORTED
 
                 file_handler.process_file()
             except Exception as e:
-                print('\t', colorama.Fore.RED, '[ERROR]', e, colorama.Style.RESET_ALL)
+                print('\t', constants.ERROR_COLOR, '[ERROR]', e, colorama.Style.RESET_ALL)
             else:
-                print('\t', colorama.Fore.GREEN, 'OK', colorama.Style.RESET_ALL)
+                print('\t', constants.PASS_COLOR, 'OK', colorama.Style.RESET_ALL)
